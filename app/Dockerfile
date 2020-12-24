@@ -1,5 +1,5 @@
-FROM php:8.0-fpm
+FROM php:8.0-apache
 
-ADD ./index.php /app/index.php
-ADD ./flag.txt /app/flag.txt
-ADD ./resource/ /app/resource/
+ADD ./index.php /var/www/html/index.php
+ADD ./flag.txt /var/www/flag.txt
+ADD ./resource/ /var/www/html/resource/
