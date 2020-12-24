@@ -8,13 +8,24 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: bad_path 
+  IMAGE_NAME_NGINX: bad_path_nginx
+  IMAGE_NAME_APP: bad_path_app
 
 jobs:
   push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Copy certificates and private keys
+        env:
+          CERT: |
+            ${{ secrets.CERT }}
+          PRIVKEY: |
+            ${{ secrets.PRIVKEY }}
+        run: |
+          echo "$CERT" > ./nginx/cert.pem
+          echo "$PRIVKEY" > ./nginx/privkey.pem
 
       - name: Build image
         run: docker-compose build
@@ -24,23 +35,21 @@ jobs:
 
       - name: Push image
         run: |
-          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase	
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
+          IMAGE_ID_NGINX=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME_NGINX
+          IMAGE_ID_APP=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME_APP
+          # Change all uppercase to lowercase
+          IMAGE_ID_NGINX=$(echo $IMAGE_ID_NGINX | tr '[A-Z]' '[a-z]')
+          IMAGE_ID_APP=$(echo $IMAGE_ID_APP | tr '[A-Z]' '[a-z]')
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
-
-          echo IMAGE_ID=$IMAGE_ID
+          echo IMAGE_ID_NGINX=$IMAGE_ID_NGINX
+          echo IMAGE_ID_APP=$IMAGE_ID_APP
           echo VERSION=$VERSION
-
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-
+          docker tag $IMAGE_NAME_NGINX $IMAGE_ID_NGINX:$VERSION
+          docker tag $IMAGE_NAME_APP $IMAGE_ID_APP:$VERSION
+          docker push $IMAGE_ID_NGINX:$VERSION
+          docker push $IMAGE_ID_APP:$VERSION
