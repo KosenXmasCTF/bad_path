@@ -4,6 +4,6 @@ services:
       build:
         context: ./app
         dockerfile: ./Dockerfile
-#      image: '${IMAGE_NAME_APP}'
+      image: 'bad_path'
       ports:
         - "8082:80"
